@@ -3,7 +3,7 @@ Software package for atomized force fields emulator (Python)
 
 Description: This package is the application of AFF method. It allows the efficient molecular potential energy surface and force fields emulation. 
 
-Reference: Efficient force field and energy emulation through partition of permutationally equivalent atoms
+Reference: Efficient force field and energy emulation through partition of permutationally equivalent atoms. The Journal of Chemical Physics. (https://aip.scitation.org/doi/10.1063/5.0088017) 
 
 Requirement: Python 3.7+, NumPy (>=1.19) ,SciPy (>=1.1)
 
