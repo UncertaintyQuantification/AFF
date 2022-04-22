@@ -10,12 +10,12 @@ from utils import aff
 
 # load the dataset contains the geometry information and the force-fields
 
-dataset=np.load('./dataset/aspirin_ccsd-train.npz')
+dataset=np.load('./dataset/uracil_dft.npz')
 
 
 AFF_train=aff.AFFTrain()
 
-n_train=100
+n_train=50
 
 # create the task file contains the training, validation and testing dataset 
 task=AFF_train.create_task(train_dataset=dataset, 
@@ -23,7 +23,8 @@ task=AFF_train.create_task(train_dataset=dataset,
                             valid_dataset=dataset,
                             n_valid=50,
                             n_test=50,
-                            lam = 1e-15)
+                            lam = 1e-15,
+                            uncertainty=False)
 
 # start training the model based on the training dataset
 trained_model = AFF_train.train(task,sig_candid_F = np.arange(10,100,10))

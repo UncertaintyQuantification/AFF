@@ -1156,7 +1156,7 @@ class AFFTrain(object):
         
         #ae=np.mean(np.abs(F_hat_val_F-F_val_atom))
         MAE=ae
-        
+        F_hat_val_E_ave = []
         if task['use_E_cstr']:
             lam_f=task['lam']
             lam_e=task['lam']
@@ -1197,7 +1197,8 @@ class AFFTrain(object):
         print('Finished! \n')
         prediction = {'predicted_force':F_star.reshape(n_val,n_atoms,-1),
                       'CI_LB':F_star_L_arr.reshape(n_val,n_atoms,-1),
-                      'CI_UB':F_star_H_arr.reshape(n_val,n_atoms,-1)
+                      'CI_UB':F_star_H_arr.reshape(n_val,n_atoms,-1),
+                      'predicted_energy':F_hat_val_E_ave
                       }
         
        
