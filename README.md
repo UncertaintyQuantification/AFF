@@ -30,14 +30,14 @@ task=AFF_train.create_task(train_dataset=dataset,
                             lam = 1e-15,
                             uncertainty=False)
 
-# start training the model based on the training dataset
+# train the model based on the training dataset
 trained_model = AFF_train.train(task,sig_candid_F = np.arange(10,20,10))
 
-# predicted the force-field using the trained_model
+# predict the force-field using the trained_model
 prediction=AFF_train.predict(task = task, 
                              trained_model = trained_model,
                              R_test = task['R_test'][[0,1],:,:])
-# predicted force field 
+# force field prediction
 predicted_force = prediction['predicted_force']
 
 ```
