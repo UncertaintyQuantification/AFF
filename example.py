@@ -15,7 +15,7 @@ dataset=np.load('./dataset/uracil_dft.npz')
 
 AFF_train=aff.AFFTrain()
 
-n_train=50
+n_train=100
 
 # create the task file contains the training, validation and testing dataset 
 task=AFF_train.create_task(train_dataset=dataset, 
@@ -27,13 +27,19 @@ task=AFF_train.create_task(train_dataset=dataset,
                             uncertainty=False)
 
 # start training the model based on the training dataset
-trained_model = AFF_train.train(task,sig_candid_F = np.arange(10,100,10))
+trained_model = AFF_train.train(task,sig_candid_F = np.arange(10,20,10))
 
 # predicted the force-field using the trained_model
-prediction=AFF_train.predict(task = task, trained_model = trained_model)
+prediction=AFF_train.predict(task = task, 
+                             trained_model = trained_model,
+                             R_test = task['R_test'][[0,1],:,:])
 
-#testing_force = task['F_test']
-#predicted_force = prediction['predicted_force']
-#MAE = np.mean(np.abs(  np.concatenate(testing_force)-np.concatenate(predicted_force)))
+testing_force = task['F_test'][[0,1],:,:]
 
-#print(MAE)
+predicted_force = prediction['predicted_force']
+
+MAE = np.mean(np.abs(  np.concatenate(testing_force)-np.concatenate(predicted_force)))
+
+print("The MAE of testing dataset is "+str('{:f}'.format(MAE))+' \n')
+
+#np.set_printoptions(suppress=True)

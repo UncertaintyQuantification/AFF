@@ -969,21 +969,26 @@ class AFFTrain(object):
         return trained_model
     
     def predict(self, task,trained_model,
+                R_test ,
             cprsn_callback=None,
             save_progr_callback=None,  # TODO: document me
             callback=None):
         
         print('Start the predicting process ... \n')
         
+        #R_test = task['R_test']
+        #if R_test.size == 0:
+        #    R_test = task['R_test']
+            
         sig_optim = trained_model['sig_F']
         sig_candid1_opt = trained_model['sig_F']
         alphas_opt = trained_model['alpha']
         
         task = dict(task)
-        solver = task['solver_name']
+        #solver = task['solver_name']
         batch_size=task['batch_size']
         n_train, n_atoms = task['R_train'].shape[:2]
-        n_val, n_atoms = task['R_test'].shape[:2]
+        n_val, n_atoms = R_test.shape[:2]
         desc = Desc(
                 n_atoms,
                 interact_cut_off=task['interact_cut_off'],
@@ -1007,18 +1012,18 @@ class AFFTrain(object):
         lat_and_inv = None
         R = task['R_train']  #.reshape(n_train, -1) 
         
-        R_val=task['R_test'] #.reshape(n_val,-1)
+        #R_val=task['R_test'] #.reshape(n_val,-1)
         # R is a n_train * 36 matrix 
         tril_perms_lin_mirror = tril_perms_lin
         # tril_perms_lin stores a vectorized permuations of all 12 permuations' descriptor position
         
         R_atom=R
-        R_val_atom=R_val
+        #R_val_atom=R_test
         #R_mirror=
         R_desc_atom, R_d_desc_atom = desc.from_R(R_atom,lat_and_inv=lat_and_inv,
                 callback=None)
         
-        R_desc_val_atom, R_d_desc_val_atom = desc.from_R(R_val_atom,lat_and_inv=lat_and_inv,
+        R_desc_val_atom, R_d_desc_val_atom = desc.from_R(R_test,lat_and_inv=lat_and_inv,
                 callback=None)
         F_train_atom=[]
         # if task['use_E_cstr']:
@@ -1030,15 +1035,15 @@ class AFFTrain(object):
             #F_val_atom=task['F_val'].ravel().copy()
         
         E_train = task['E_train'].ravel().copy()
-        E_val = task['E_test'].ravel().copy()
+        #E_val = task['E_test'].ravel().copy()
         uncertainty=task['uncertainty']
         
         for i in range(n_type):
             index=np.array(index_diff_atom[i])
 
             F_train_atom.append(task['F_train'][:,index,:].reshape(int(n_train*(len(index_diff_atom[i])*3)),order='C'))
-            F_val_atom.append(task['F_test'][:,index,:].reshape(int(n_val*(len(index_diff_atom[i])*3)),order='C'))
-        ye_val=E_val
+            #F_val_atom.append(task['F_test'][:,index,:].reshape(int(n_val*(len(index_diff_atom[i])*3)),order='C'))
+        #ye_val=E_val
         
         #y_atom= F_train_atom.copy()
             
@@ -1140,22 +1145,22 @@ class AFFTrain(object):
 
                 F_star_H.append(F_hat_val_i+norm.ppf(0.975,0,np.sqrt(np.diag(S2*K_star_star))))
                 F_star_H_arr[index_i]=F_hat_val_i+norm.ppf(0.975,0,np.sqrt(np.diag(S2*K_star_star)))
-        if uncertainty: 
-            P_C=np.sum( np.array(np.concatenate(F_star_L)<=np.concatenate(F_val_atom)) & np.array(np.concatenate(F_star_H)>=np.concatenate(F_val_atom)))/(n_val*3*n_atoms)
-            A_L=np.mean( np.concatenate(F_star_H)-np.concatenate(F_star_L))
-            print('   The percentage of coverage by 95% CI is '+repr(P_C*100)+' %.') 
-            print('   The average length of the 95% CI is '+repr(A_L)) 
-        #a=(np.concatenate(F_star_L)<=np.concatenate(F_val_atom) and np.concatenate(F_star_H)>=np.concatenate(F_val_atom))
-        ae=np.mean(np.abs(  np.concatenate(F_hat_val_F)-np.concatenate(F_val_atom)))
-        RMSE_F=np.sqrt(np.mean((np.concatenate(F_hat_val_F)-np.concatenate(F_val_atom))**2))/np.std(np.concatenate(F_val_atom))
-        print('   This is the  MAE of F='+repr(ae)) 
-        print('   This is the  RMSE of F='+repr(RMSE_F)+'\n') 
+        # if uncertainty: 
+        #     P_C=np.sum( np.array(np.concatenate(F_star_L)<=np.concatenate(F_val_atom)) & np.array(np.concatenate(F_star_H)>=np.concatenate(F_val_atom)))/(n_val*3*n_atoms)
+        #     A_L=np.mean( np.concatenate(F_star_H)-np.concatenate(F_star_L))
+        #     print('   The percentage of coverage by 95% CI is '+repr(P_C*100)+' %.') 
+        #     print('   The average length of the 95% CI is '+repr(A_L)) 
+        # #a=(np.concatenate(F_star_L)<=np.concatenate(F_val_atom) and np.concatenate(F_star_H)>=np.concatenate(F_val_atom))
+        #ae=np.mean(np.abs(  np.concatenate(F_hat_val_F)-np.concatenate(F_val_atom)))
+        #RMSE_F=np.sqrt(np.mean((np.concatenate(F_hat_val_F)-np.concatenate(F_val_atom))**2))/np.std(np.concatenate(F_val_atom))
+        #print('   This is the  MAE of F='+repr(ae)) 
+        #print('   This is the  RMSE of F='+repr(RMSE_F)+'\n') 
         
 
         
         
         #ae=np.mean(np.abs(F_hat_val_F-F_val_atom))
-        MAE=ae
+        #MAE=ae
         F_hat_val_E_ave = []
         if task['use_E_cstr']:
             lam_f=task['lam']
@@ -1186,12 +1191,12 @@ class AFFTrain(object):
             )
             stop = timeit.default_timer()
             dur_s = (stop - start)
-            MSA_E=np.mean(np.abs(-F_hat_val_E_ave-ye_val))
-            RMSE_E=np.sqrt(np.mean((-F_hat_val_E_ave-ye_val)**2))/np.std(ye_val)
-            MSA_E_arr.append(MSA_E)
+            #MSA_E=np.mean(np.abs(-F_hat_val_E_ave-ye_val))
+           # RMSE_E=np.sqrt(np.mean((-F_hat_val_E_ave-ye_val)**2))/np.std(ye_val)
+            #MSA_E_arr.append(MSA_E)
             #print(' This is the testing task: It takes'+repr(dur_s)+'second; each estimation takes'+repr(dur_s/n_val)+' seconds') 
-            print('   This is the testing task: MAE of E='+repr(MSA_E)) 
-            print('   This is the testing task: RMSE of E='+repr(RMSE_E)+'/n') 
+           # print('   This is the testing task: MAE of E='+repr(MSA_E)) 
+          #  print('   This is the testing task: RMSE of E='+repr(RMSE_E)+'/n') 
         
        
         print('Finished! \n')
